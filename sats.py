@@ -5,6 +5,7 @@ import cPickle
 
 import predict
 from spacetrack import SpaceTrackClient
+import ephem
 
 from flask import Flask, request
 from flask_restful import Resource, Api
@@ -15,36 +16,117 @@ api = Api(application)
 
 homeQTH = (42.294615, 71.302342, 185)
 
+countryMapping = {
+    "JPN": "Japan",
+    "CIS-pre": "the Soviet Union",
+    "CIS-post": "Russia",
+    "US": "the United States",
+    "ESA": "the European Space Agency"
+}
+
+objectMapping = {
+    "R/B": "rocket booster"
+}
+
 with open("satelliteData.pickle", "rb") as f:
     satData = cPickle.load(f)
 
+def parseSatellitesAboveResults(sats):
+    # Create our json result
+    result = {}
+    for key in sats.keys():
+        result[key] = {
+            "elevation": sats[key]["prediction"]["elevation"],
+            "visibility": sats[key]["prediction"]["visibility"],
+            "geostationary": sats[key]["prediction"]["geostationary"],
+            "satname": sats[key]["catalogInfo"][0]["SATNAME"],
+            "object_type": sats[key]["catalogInfo"][0]["OBJECT_TYPE"],
+            "country": sats[key]["catalogInfo"][0]["COUNTRY"],
+            "launch_year": sats[key]["catalogInfo"][0]["LAUNCH_YEAR"],
+            "launch": sats[key]["catalogInfo"][0]["LAUNCH"]
+
+        }
+
+    return result
+
+def parseQTH(qth):
+    qthSplit = qth.split(",")
+        
+    if (len(qthSplit) == 2):
+        # Assume 1000ft for elevation if non given
+        return (qthSplit[0], qthSplit[1], 1000)
+    else:
+        return (qthSplit[0], qthSplit[1], qthSplit[2])
+
+def getCountryName(satInfo):
+    if satInfo["country"] == "CIS":
+        if satInfo["launch_year"] <= "1989":
+            return countryMapping["CIS-pre"]
+        else:
+            return countryMapping["CIS-post"]
+    else:
+        return countryMapping[satInfo["country"]]
+
+def dayOrNight(qth):
+    """Calculate whether it is day or night for a given qth.
+
+    qth needs to be in a tuple of (lat, lon, elev) (with lon as W)
+    """
+
+    # Use of pyephem module cribbed from here:
+    # https://stackoverflow.com/questions/15044521/javascript-or-python-how-do-i-figure-out-if-its-night-or-day
+    user = ephem.Observer()
+    user.lat = str(qth[0])
+    if qth[1] > 0:
+        user.lon = "-%s" % qth[1]
+    else:
+        user.lon = str(qth[1])
+    user.elevation = float(qth[2])
+
+    next_sunrise_datetime = user.next_rising(ephem.Sun()).datetime()
+    next_sunset_datetime = user.next_setting(ephem.Sun()).datetime()
+
+    # If it is daytime, we will see a sunset sooner than a sunrise.
+    it_is_day = next_sunset_datetime < next_sunrise_datetime
+
+    if it_is_day:
+        return "daytime"
+    else:
+        return "night"
+
 class SatellitesAbove(Resource):
     def get(self, qth):
-        qthSplit = qth.split(",")
         
-        if (len(qthSplit) == 2):
-            # Assume 1000ft for elevation if non given
-            sats = getSatellitesAbove((qthSplit[0], qthSplit[1], 1000))
+        sats = getSatellitesAbove(parseQTH(qth))
+
+        return parseSatellitesAboveResults(sats)
+
+class SatellitesAbovePoem(Resource):
+    def get(self, qth):
+        sats = getSatellitesAbove(parseQTH(qth))
+
+        results = parseSatellitesAboveResults(sats)
+
+        # Sort based off of elevation
+        sortedIDs = sorted(results, key = lambda x: results[x]["elevation"], reverse=True)
+        highestSat = results[sortedIDs[0]]
+
+        print highestSat
+
+        # Get country name
+        countryName = getCountryName(highestSat)
+
+        poem = "In %s, %s left a %s orbiting the earth." % (highestSat["launch_year"], countryName, highestSat["object_type"].lower())
+        poem = "%s It's above you right now." % poem
+        dayNight = dayOrNight(parseQTH(qth))        
+
+        if dayNight == "daytime":
+            poem = "%s Even though it's %s, and you can't see it." % (poem, dayNight)
         else:
-            sats = getSatellitesAbove((qthSplit[0], qthSplit[1], qthSplit[2]))
+            poem = "%s Look above, carefully, for the glint of its shell." % poem
 
-        # Create our json result
-        result = {}
-        for key in sats.keys():
-            result[key] = {
-                "elevation": sats[key]["prediction"]["elevation"],
-                "visibility": sats[key]["prediction"]["visibility"],
-                "geostationary": sats[key]["prediction"]["geostationary"],
-                "satname": sats[key]["catalogInfo"][0]["SATNAME"],
-                "object_type": sats[key]["catalogInfo"][0]["OBJECT_TYPE"],
-                "country": sats[key]["catalogInfo"][0]["COUNTRY"],
-                "launch_year": sats[key]["catalogInfo"][0]["LAUNCH_YEAR"],
-                "launch": sats[key]["catalogInfo"][0]["LAUNCH"]
+        return {"poem": poem}
 
-            }
-
-        return result
-            
 def getSatellitesAbove(qth):
     sats = {}
 
@@ -69,6 +151,5 @@ api.add_resource(SatellitesAbove, "/sats/pebble/<string:qth>")
 api.add_resource(SatellitesAbovePoem, "/sats/pebble/poem/<string:qth>")
 
 if __name__ == "__main__":
-    #sats = getSatellitesAbove(homeQTH)
-    #print sats
-    application.run(host="0.0.0.0")
+    #application.run(host="0.0.0.0")
+    application.run(host="127.0.0.1",port=34567)
