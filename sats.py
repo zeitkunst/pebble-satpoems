@@ -21,7 +21,8 @@ countryMapping = {
     "CIS-pre": "the Soviet Union",
     "CIS-post": "Russia",
     "US": "the United States",
-    "ESA": "the European Space Agency"
+    "ESA": "the European Space Agency",
+    "PRC": "China"
 }
 
 objectMapping = {
