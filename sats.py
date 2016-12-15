@@ -1,7 +1,23 @@
 #!/usr/bin/env python
+"""
+Things that could be included: sat name, ID, object type, country, launch year, visibility, elevation
 
+(The earth | She) drags the (object type) back to the (surface | ground | crust)
+(Remember | Forget | Recall | Understand) its name, "(sat name)"
+(Hurled | Thrown | Launched) to the heavens upon fire (a while a go | a long time ago | recently)
+It will be reduced to dust.
+
+
+In the darkness
+(In the | During the ) ((darkness | night | void) | (day | light))
+a (object) from (countryName) is above, (visible | invisible, but present)
+From (a while a go| a long time ago | recently)
+"""
 # For now...
 import cPickle
+
+from datetime import datetime
+from random import choice
 
 import predict
 from spacetrack import SpaceTrackClient
@@ -10,6 +26,16 @@ import ephem
 from flask import Flask, request
 from flask_restful import Resource, Api
 from json import dumps
+
+"""
+Methods, things we need:
+
+    * Update TLEs; check memcached first, if there, retrieve, if not, get updated values and save in memcached
+    * Chunk these updates, write cron job to do so
+    * Abstract out checking whether or not a satellite is above
+    * Method for checking a QTH against different sets of satellites
+    * Method for periodically saving a set of values from memcached to local storage in pickled files
+"""
 
 application = Flask(__name__)
 api = Api(application)
@@ -98,6 +124,17 @@ def dayOrNight(qth):
     else:
         return "night"
 
+def timeAgo(launchYear):
+    d = datetime.today()
+    currentYear = d.strftime("%Y")
+    delta = int(currentYear) - int(launchYear)
+
+    if (delta < 10):
+        return "recently"
+    elif ((delta >= 10) and (delta < 25)):
+        return "a while ago"
+    elif (delta >= 25):
+        return "a long time ago"
 class SatellitesAbove(Resource):
     def get(self, qth):
         
@@ -115,6 +152,8 @@ class SatellitesAbovePoem(Resource):
         sortedIDs = sorted(results, key = lambda x: results[x]["elevation"], reverse=True)
         highestSat = results[sortedIDs[0]]
 
+        dustPoem = generateDustPoem(highestSat)
+
         print highestSat
 
         # Get country name
@@ -131,7 +170,28 @@ class SatellitesAbovePoem(Resource):
             poem = "%s Look above, carefully, for the glint of its shell. I'm going to make this super duper long so that I can test scrolling on the emulator and the device yes I will becuase scrolling has to happen automatically" % poem
             #poem = "%s Look above, carefully, for the glint of its shell." % poem
 
-        return {"poem": poem}
+        return {"poem": generateDustPoem(highestSat)}
+
+def generateDustPoem(satInfo):
+    """
+(The earth | She) drags the (object type) back to the (surface | ground | crust)
+(Remember | Forget | Recall | Understand) its name, "(sat name)"
+(Hurled | Thrown | Launched) to the heavens upon fire (a while a go | a long time ago | recently)
+It will be reduced to dust.
+"""
+    subjects = ["The earth", "She"]
+    surfaces = ["surface", "ground", "crust"]
+    remembers = ["Remember", "Forget", "Recall", "Understand"]
+    hurleds = ["Hurled", "Thrown", "Launched"]
+    time = timeAgo(satInfo["launch_year"])
+
+    dustPoem = "EL %d DEGREES\n\n" % (int(round(float(satInfo["elevation"]))))
+    dustPoem = "%s%s drags the %s back to the %s\n\n" % (dustPoem, choice(subjects), satInfo["object_type"].lower(), choice(surfaces))
+    dustPoem = "%s%s its name, \"%s\"\n\n" % (dustPoem, choice(remembers), satInfo["satname"])
+    dustPoem = "%s%s to the heavens upon fire %s\n\n" % (dustPoem, choice(hurleds), time)
+    dustPoem = "%sIt will be reduced to dust." % (dustPoem)
+
+    return dustPoem
 
 def getSatellitesAbove(qth):
     sats = {}
