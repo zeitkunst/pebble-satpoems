@@ -22,7 +22,10 @@ countryMapping = {
     "CIS-post": "Russia",
     "US": "the United States",
     "ESA": "the European Space Agency",
-    "PRC": "China"
+    "PRC": "China",
+    "FR": "France",
+    "IT": "Italy",
+    "ISS": "the International Space Station"
 }
 
 objectMapping = {
@@ -124,7 +127,9 @@ class SatellitesAbovePoem(Resource):
         if dayNight == "daytime":
             poem = "%s Even though it's %s, and you can't see it." % (poem, dayNight)
         else:
-            poem = "%s Look above, carefully, for the glint of its shell." % poem
+            #poem = "%s Look above, carefully, for the glint of its shell. I'm going to make this super duper long so that I can test scrolling on the emulator and the device yes I will becuase scrolling has to happen automatically yes it does otherwise the text will just sit there in the screen and there won't be much that we can do about it and it'll just be cut off and there's nothing we could do no no no but this we can yes yes yes." % poem
+            poem = "%s Look above, carefully, for the glint of its shell. I'm going to make this super duper long so that I can test scrolling on the emulator and the device yes I will becuase scrolling has to happen automatically" % poem
+            #poem = "%s Look above, carefully, for the glint of its shell." % poem
 
         return {"poem": poem}
 
