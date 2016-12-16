@@ -148,9 +148,14 @@ class SatellitesAbove(Resource):
 
 class SatellitesAbovePoem(Resource):
     def get(self, qth):
-        sats = getSatellitesAbove(parseQTH(qth))
+        # Old Method
+        #sats = getSatellitesAbove(parseQTH(qth))
+        #results = parseSatellitesAboveResults(sats)
 
-        results = parseSatellitesAboveResults(sats)
+        satInfo = SatInfo.SatInfo(qth = parseQTH(qth), satType = "visual-sats")
+
+        results = satInfo.getSatellitesAboveParsed()
+
 
         # Sort based off of elevation
         sortedIDs = sorted(results, key = lambda x: results[x]["elevation"], reverse=True)

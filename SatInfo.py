@@ -205,5 +205,5 @@ if __name__ == "__main__":
     for key in sat_types.keys():
         print "Working on %s" % key
         satFilename = sat_types[key]["filename"]
-        update = SatInfoUpdate(satFilename)
+        update = SatInfoUpdate(satFilename, pickleSave = True)
         update.updateSatInfo()
