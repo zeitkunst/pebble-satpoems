@@ -27,6 +27,8 @@ from flask import Flask, request
 from flask_restful import Resource, Api
 from json import dumps
 
+import SatInfo
+
 """
 Methods, things we need:
 
@@ -135,12 +137,14 @@ def timeAgo(launchYear):
         return "a while ago"
     elif (delta >= 25):
         return "a long time ago"
+
 class SatellitesAbove(Resource):
     def get(self, qth):
-        
-        sats = getSatellitesAbove(parseQTH(qth))
+        satInfo = SatInfo.SatInfo(qth = parseQTH(qth), satType = "stations-sats")
 
-        return parseSatellitesAboveResults(sats)
+        #sats = satInfo.getSatellitesAbove(parseQTH(qth))
+
+        return satInfo.getSatellitesAboveParsed()
 
 class SatellitesAbovePoem(Resource):
     def get(self, qth):

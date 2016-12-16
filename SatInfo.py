@@ -56,7 +56,7 @@ class SatInfo(object):
         else:
             return ids
 
-    def getSatellitesAbove(self):
+    def getSatellitesAboveComplete(self):
         sats = {}
 
         ids = self.getIDs()
@@ -72,10 +72,14 @@ class SatInfo(object):
                 resultData = data
                 resultData["prediction"] = p
                 sats[id] = resultData
-    
+   
+        self.sats = sats
         return sats
 
-    def parseSatellitesAboveResults(self, sats):
+    def getSatellitesAboveParsed(self):
+        """Get a parsed version of the satellites above."""
+        sats = self.getSatellitesAboveComplete()
+
         # Create our json result
         result = {}
         for key in sats.keys():
@@ -195,3 +199,11 @@ class SatInfoUpdate(object):
             tleDictionary[ids[item]] = (tles[item*2], tles[item*2 + 1])
 
         return tleDictionary
+
+if __name__ == "__main__":
+    print "Updating all satellite info..."
+    for key in sat_types.keys():
+        print "Working on %s" % key
+        satFilename = sat_types[key]["filename"]
+        update = SatInfoUpdate(satFilename)
+        update.updateSatInfo()
