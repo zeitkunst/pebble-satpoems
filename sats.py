@@ -181,26 +181,42 @@ class SatellitesAbovePoem(Resource):
 
         return {"poem": generateDustPoem(highestSat)}
 
-def generateDustPoem(satInfo):
+def generateDustPoem(satInfo, whole = True):
     """
 (The earth | She) drags the (object type) back to the (surface | ground | crust)
 (Remember | Forget | Recall | Understand) its name, "(sat name)"
 (Hurled | Thrown | Launched) to the heavens upon fire (a while a go | a long time ago | recently)
 It will be reduced to dust.
 """
-    subjects = ["The earth", "She"]
+    subjects = ["The earth", "The Field", "She"]
     surfaces = ["surface", "ground", "crust"]
     remembers = ["Remember", "Forget", "Recall", "Understand"]
     hurleds = ["Hurled", "Thrown", "Launched"]
     time = timeAgo(satInfo["launch_year"])
 
+    dustPoemLines = []
+
+    dustPoemLines.append("EL %d DEGREES" % (int(round(float(satInfo["elevation"])))))
+    dustPoemLines.append("%s drags the %s back to the %s" % (choice(subjects), satInfo["object_type"].lower(), choice(surfaces)))
+    dustPoemLines.append("%s its name, \"%s\"" % (choice(remembers), satInfo["satname"]))
+    dustPoemLines.append("%s to the heavens upon fire %s" % (choice(hurleds), time))
+    dustPoemLines.append("It will be reduced to dust.")
+
+    """
     dustPoem = "EL %d DEGREES\n\n" % (int(round(float(satInfo["elevation"]))))
     dustPoem = "%s%s drags the %s back to the %s\n\n" % (dustPoem, choice(subjects), satInfo["object_type"].lower(), choice(surfaces))
     dustPoem = "%s%s its name, \"%s\"\n\n" % (dustPoem, choice(remembers), satInfo["satname"])
     dustPoem = "%s%s to the heavens upon fire %s\n\n" % (dustPoem, choice(hurleds), time)
     dustPoem = "%sIt will be reduced to dust." % (dustPoem)
+    """
 
-    return dustPoem
+    if whole:
+        dustPoem = dustPoemLines[0]
+        for line in dustPoemLines[1:]:
+            dustPoem = "%s\n\n%s" % (dustPoem, line)
+        return dustPoem
+    else:
+        return dustPoemLines
 
 def getSatellitesAbove(qth):
     sats = {}
