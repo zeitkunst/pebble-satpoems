@@ -198,18 +198,18 @@ def generateDustPoem(satInfo, whole = True):
 (Hurled | Thrown | Launched) to the heavens upon fire (a while a go | a long time ago | recently)
 It will be reduced to dust.
 """
-    subjects = ["The earth", "The Field", "She", "Friction", "The \u00E6ther"]
-    actions = ["drags", "pulls", "attracts"]
-    surfaces = ["surface", "ground", "crust"]
-    remembers = ["Remember", "Forget", "Recall", "Understand", "Know", "Wonder about", "Question"]
-    hurleds = ["Hurled", "Thrown", "Launched", "Propelled", "Thrust"]
-    endings = ["It will be reduced to dust.", "It will float away, infinitely.", "It will remain aloft, forever.", "It will be warmed by the sun.", "It tumbles and tumbles, incessantly.", "It remains, still in the cold void."]
+    subjects = [u"The earth", u"The Field", u"She", u"Friction", u"The \u00E6ther"]
+    actions = [u"drags", u"attracts", u"slows", u"decays"]
+    surfaces = [u"surface", u"ground", u"crust", u"atmosphere", u"cloudtops"]
+    remembers = [u"Remember", u"Forget", u"Recall", u"Understand", u"Know", u"Wonder about", u"Question"]
+    hurleds = [u"Hurled", u"Thrown", u"Launched", u"Propelled", u"Thrust"]
+    endings = [u"It will be reduced to dust.", u"It will remain aloft, forever.", u"It will be warmed by the solar wind.", u"It tumbles and tumbles, incessantly.", u"It will remain, still, in the cold void."]
     time = timeAgo(satInfo["launch_year"])
 
     dustPoemLines = []
 
     dustPoemLines.append(u"EL %d DEGREES" % (int(round(float(satInfo["elevation"])))))
-    dustPoemLines.append(u"%s %s the %s back to the %s" % (choice(subjects), choice(actions), satInfo["object_type"].lower(), choice(surfaces)))
+    dustPoemLines.append(u"%s %s the %s above the %s" % (choice(subjects), choice(actions), satInfo["object_type"].lower(), choice(surfaces)))
     dustPoemLines.append(u"%s its name, \u201C%s\u201D" % (choice(remembers), satInfo["satname"]))
     dustPoemLines.append(u"%s to the heavens upon fire %s" % (choice(hurleds), time))
     dustPoemLines.append(choice(endings))
