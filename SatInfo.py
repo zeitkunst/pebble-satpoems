@@ -29,7 +29,8 @@ countryMapping = {
         "PRC": "China",
         "FR": "France",
         "IT": "Italy",
-        "ISS": "the International Space Station"
+        "ISS": "the International Space Station",
+        "CA": "Canada"
 }
 
 objectMapping = {
@@ -79,6 +80,7 @@ class SatInfo(object):
     def getSatellitesAboveParsed(self):
         """Get a parsed version of the satellites above."""
         sats = self.getSatellitesAboveComplete()
+        print sats
 
         # Create our json result
         result = {}

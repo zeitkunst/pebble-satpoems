@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+# # -*- coding: utf-8 -*-
+# vim: set fileencoding=utf-8 :
 """
 Things that could be included: sat name, ID, object type, country, launch year, visibility, elevation
 
@@ -13,6 +15,9 @@ In the darkness
 a (object) from (countryName) is above, (visible | invisible, but present)
 From (a while a go| a long time ago | recently)
 """
+
+# Unicode help: https://www.azavea.com/blog/2014/03/24/solving-unicode-problems-in-python-2-7/
+
 # For now...
 import cPickle
 
@@ -53,7 +58,8 @@ countryMapping = {
     "PRC": "China",
     "FR": "France",
     "IT": "Italy",
-    "ISS": "the International Space Station"
+    "ISS": "the International Space Station",
+    "CA": "Canada"
 }
 
 objectMapping = {
@@ -81,9 +87,13 @@ def parseSatellitesAboveResults(sats):
 
     return result
 
-def parseQTH(qth):
+def parseQTH(qth, pypredict = True):
     qthSplit = qth.split(",")
-        
+
+    # pypredict uses West longitude, so make that conversion here
+    if pypredict:
+        qthSplit[1] = str(-1 * float(qthSplit[1]))
+
     if (len(qthSplit) == 2):
         # Assume 1000ft for elevation if non given
         return (qthSplit[0], qthSplit[1], 1000)
@@ -140,7 +150,7 @@ def timeAgo(launchYear):
 
 class SatellitesAbove(Resource):
     def get(self, qth):
-        satInfo = SatInfo.SatInfo(qth = parseQTH(qth), satType = "stations-sats")
+        satInfo = SatInfo.SatInfo(qth = parseQTH(qth), satType = "visual-sats")
 
         #sats = satInfo.getSatellitesAbove(parseQTH(qth))
 
@@ -179,7 +189,7 @@ class SatellitesAbovePoem(Resource):
             poem = "%s Look above, carefully, for the glint of its shell. I'm going to make this super duper long so that I can test scrolling on the emulator and the device yes I will becuase scrolling has to happen automatically" % poem
             #poem = "%s Look above, carefully, for the glint of its shell." % poem
 
-        return {"poem": generateDustPoem(highestSat)}
+        return generateDustPoem(highestSat)
 
 def generateDustPoem(satInfo, whole = True):
     """
@@ -196,11 +206,11 @@ It will be reduced to dust.
 
     dustPoemLines = []
 
-    dustPoemLines.append("EL %d DEGREES" % (int(round(float(satInfo["elevation"])))))
-    dustPoemLines.append("%s drags the %s back to the %s" % (choice(subjects), satInfo["object_type"].lower(), choice(surfaces)))
-    dustPoemLines.append("%s its name, \"%s\"" % (choice(remembers), satInfo["satname"]))
-    dustPoemLines.append("%s to the heavens upon fire %s" % (choice(hurleds), time))
-    dustPoemLines.append("It will be reduced to dust.")
+    dustPoemLines.append(u"EL %d DEGREES" % (int(round(float(satInfo["elevation"])))))
+    dustPoemLines.append(u"%s drags the %s back to the %s" % (choice(subjects), satInfo["object_type"].lower(), choice(surfaces)))
+    dustPoemLines.append(u"%s its name, \u201C%s\u201D" % (choice(remembers), satInfo["satname"]))
+    dustPoemLines.append(u"%s to the heavens upon fire %s" % (choice(hurleds), time))
+    dustPoemLines.append(u"It will be reduced to dust.")
 
     """
     dustPoem = "EL %d DEGREES\n\n" % (int(round(float(satInfo["elevation"]))))
@@ -211,12 +221,15 @@ It will be reduced to dust.
     """
 
     if whole:
-        dustPoem = dustPoemLines[0]
-        for line in dustPoemLines[1:]:
-            dustPoem = "%s\n\n%s" % (dustPoem, line)
-        return dustPoem
+        dustPoem = unicode("\n\n".join(dustPoemLines[1:]))
+        print dustPoem.encode("utf-8") 
+        #dustPoem = dustPoemLines[0]
+        return {"title": dustPoemLines[0].encode("utf-8"), "poem": dustPoem.encode("utf-8")}
     else:
-        return dustPoemLines
+        encodedDustPoem = []
+        for line in dustPoemLines[1:]:
+            encodedDustPoem.append(line.encode("utf-8"))
+        return {"title": dustPoemLines[0].encode("utf-8"), "poem": encodedDustPoem}
 
 def getSatellitesAbove(qth):
     sats = {}
