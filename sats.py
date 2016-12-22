@@ -22,7 +22,7 @@ From (a while a go| a long time ago | recently)
 import cPickle
 
 from datetime import datetime
-from random import choice
+from random import choice, shuffle
 
 import predict
 from spacetrack import SpaceTrackClient
@@ -47,8 +47,6 @@ Methods, things we need:
 application = Flask(__name__)
 api = Api(application)
 
-homeQTH = (42.294615, 71.302342, 185)
-
 countryMapping = {
     "JPN": "Japan",
     "CIS-pre": "the Soviet Union",
@@ -61,6 +59,16 @@ countryMapping = {
     "ISS": "the International Space Station",
     "CA": "Canada"
 }
+
+
+solar_system_bodies = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"]
+
+stars = ["Vega", "Deneb", "Sirius", "Aldebaran", "Rigel", "Betelgeuse", "Capella", "Pollux", "Procyon"]
+
+"""
+Polaris the universe spins around
+Never setting, just processing
+"""
 
 objectMapping = {
     "R/B": "rocket booster"
@@ -109,20 +117,62 @@ def getCountryName(satInfo):
     else:
         return countryMapping[satInfo["country"]]
 
+def planetsStarsAbove(qth):
+    """Calculate whether certain planets or stars are visible above or not.
+
+    Of course, it's going to be hard to see things if it's daytime!.
+    """
+    
+    planetsStarsAbove = {}
+
+    location = ephem.Observer()
+    location.lat = qth[0]
+    location.lon = qth[1]
+    location.elevation = float(qth[2])
+
+
+    for body in solar_system_bodies:
+        e = getattr(ephem, body)
+
+        setting = location.next_setting(e()).datetime()
+        rising = location.next_rising(e()).datetime()
+    
+        if setting < rising:
+            planetsStarsAbove[body] = True
+        else:
+            planetsStarsAbove[body] = False
+
+
+    for star in stars:
+        e = ephem.star(star)
+
+        setting = location.next_setting(e).datetime()
+        rising = location.next_rising(e).datetime()
+    
+        if setting < rising:
+            planetsStarsAbove[star] = True
+        else:
+            planetsStarsAbove[star] = False
+
+    return planetsStarsAbove
+
 def dayOrNight(qth):
     """Calculate whether it is day or night for a given qth.
 
-    qth needs to be in a tuple of (lat, lon, elev) (with lon as W)
+    qth needs to be in a tuple of (lat, lon, elev)
     """
 
     # Use of pyephem module cribbed from here:
     # https://stackoverflow.com/questions/15044521/javascript-or-python-how-do-i-figure-out-if-its-night-or-day
     user = ephem.Observer()
     user.lat = str(qth[0])
+    user.lon = str(qth[1])
+    """
     if qth[1] > 0:
         user.lon = "-%s" % qth[1]
     else:
         user.lon = str(qth[1])
+    """
     user.elevation = float(qth[2])
 
     next_sunrise_datetime = user.next_rising(ephem.Sun()).datetime()
@@ -132,7 +182,7 @@ def dayOrNight(qth):
     it_is_day = next_sunset_datetime < next_sunrise_datetime
 
     if it_is_day:
-        return "daytime"
+        return "day"
     else:
         return "night"
 
@@ -180,9 +230,9 @@ class SatellitesAbovePoem(Resource):
 
         poem = "In %s, %s left a %s orbiting the earth." % (highestSat["launch_year"], countryName, highestSat["object_type"].lower())
         poem = "%s It's above you right now." % poem
-        dayNight = dayOrNight(parseQTH(qth))        
+        dayNight = dayOrNight(parseQTH(qth, pypredict = False))        
 
-        if dayNight == "daytime":
+        if dayNight == "day":
             poem = "%s Even though it's %s, and you can't see it." % (poem, dayNight)
         else:
             #poem = "%s Look above, carefully, for the glint of its shell. I'm going to make this super duper long so that I can test scrolling on the emulator and the device yes I will becuase scrolling has to happen automatically yes it does otherwise the text will just sit there in the screen and there won't be much that we can do about it and it'll just be cut off and there's nothing we could do no no no but this we can yes yes yes." % poem
@@ -190,6 +240,43 @@ class SatellitesAbovePoem(Resource):
             #poem = "%s Look above, carefully, for the glint of its shell." % poem
 
         return generateDustPoem(highestSat)
+
+class PlanetsStarsAbove(Resource):
+    def get(self, qth):
+        return planetsStarsAbove(parseQTH(qth, pypredict = False))
+
+class PlanetsStarsAbovePoems(Resource):
+    def get(self, qth):
+        planets_and_stars = planetsStarsAbove(parseQTH(qth, pypredict = False))
+        return generateDappledVoidPoem(planets_and_stars)
+
+
+def generateDappledVoidPoem(planets_and_stars, whole = True):
+
+    dappled_void = []
+    light_options = [u"Light from", u"The shine of", u"Illumination by"]
+    no_light_options = [u"No light from", u"The invisible", u"The to-be-seen-but-not-now"]
+
+
+    names = planets_and_stars.keys()
+    shuffle(names)
+
+    for name in names:
+        if planets_and_stars[name]:
+            dappled_void.append(u"%s %s," % (choice(light_options), unicode(name)))
+        else:
+            dappled_void.append(u"%s %s," % (choice(no_light_options), unicode(name)))
+
+    dappled_void[-1] = dappled_void[-1].rstrip(",")
+
+    if whole:
+        dappledVoidPoem = unicode("\n\n".join(dappled_void))
+        return {"dappled_void_title": u"Dappled Void (after Anne Carson)".encode("utf-8"), "dappled_void_poem": dappledVoidPoem.encode("utf-8")}
+    else:
+        encodedDappledVoidPoem = []
+        for line in dappled_void:
+            encodedDappledVoidPoem.append(line.encode("utf-8"))
+        return {"dappled_void_title": u"Dappled Void (after Anne Carson)".encode("utf-8"), "dappled_void_poem": encodedDappledVoidPoem}
 
 def generateDustPoem(satInfo, whole = True):
     """
@@ -203,7 +290,7 @@ It will be reduced to dust.
     surfaces = [u"surface", u"ground", u"crust", u"atmosphere", u"cloudtops"]
     remembers = [u"Remember", u"Forget", u"Recall", u"Understand", u"Know", u"Wonder about", u"Question"]
     hurleds = [u"Hurled", u"Thrown", u"Launched", u"Propelled", u"Thrust"]
-    endings = [u"It will be reduced to dust.", u"It will remain aloft, forever.", u"It will be warmed by the solar wind.", u"It tumbles and tumbles, incessantly.", u"It will remain, still, in the cold void."]
+    endings = [u"It will be reduced to dust.", u"It will remain aloft, forever.", u"It will be jostled by the solar wind.", u"It tumbles and tumbles, incessantly.", u"It will remain, still, in the cold void."]
     time = timeAgo(satInfo["launch_year"])
 
     dustPoemLines = []
@@ -255,6 +342,8 @@ def getSatellitesAbove(qth):
 
 api.add_resource(SatellitesAbove, "/sats/pebble/<string:qth>")
 api.add_resource(SatellitesAbovePoem, "/sats/pebble/poem/<string:qth>")
+api.add_resource(PlanetsStarsAbove, "/planets_stars/pebble/<string:qth>")
+api.add_resource(PlanetsStarsAbovePoems, "/planets_stars/pebble/poem/<string:qth>")
 
 if __name__ == "__main__":
     #application.run(host="0.0.0.0")
