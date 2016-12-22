@@ -63,7 +63,7 @@ countryMapping = {
 
 solar_system_bodies = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"]
 
-stars = ["Vega", "Deneb", "Sirius", "Aldebaran", "Rigel", "Betelgeuse", "Capella", "Pollux", "Procyon"]
+stars = ["Vega", "Deneb", "Sirius", "Aldebaran", "Rigel", "Betelgeuse", "Capella", "Pollux", "Procyon", "Spica", "Arcturus", "Antares", "Regulus", "Altair"]
 
 """
 Polaris the universe spins around
@@ -261,13 +261,22 @@ def generateDappledVoidPoem(planets_and_stars, whole = True):
     names = planets_and_stars.keys()
     shuffle(names)
 
+    # If the sun is out...
+    if planets_and_stars["Sun"]:
+        dappled_void.append(u"Merged with the Sun's light. Yet.")
+
     for name in names:
         if planets_and_stars[name]:
-            dappled_void.append(u"%s %s," % (choice(light_options), unicode(name)))
+            if ((name == "Sun") or (name == "Moon")):
+                dappled_void.append(u"%s the %s," % (choice(light_options), unicode(name)))
+            else:
+                dappled_void.append(u"%s %s," % (choice(light_options), unicode(name)))
+
         else:
             dappled_void.append(u"%s %s," % (choice(no_light_options), unicode(name)))
 
     dappled_void[-1] = dappled_void[-1].rstrip(",")
+    dappled_void[-1] = u"%s." % dappled_void[-1]
 
     if whole:
         dappledVoidPoem = unicode("\n\n".join(dappled_void))
