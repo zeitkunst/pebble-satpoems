@@ -256,6 +256,7 @@ def generateDappledVoidPoem(planets_and_stars, whole = True):
     dappled_void = []
     light_options = [u"Light from", u"The shine of", u"Illumination by"]
     no_light_options = [u"No light from", u"The invisible", u"The to-be-seen-but-not-now"]
+    sun_options = [u"Merged with the Sun's light. Yet.", u"Lost in the Sun's glare. Nevertheless."]
 
 
     names = planets_and_stars.keys()
@@ -263,7 +264,7 @@ def generateDappledVoidPoem(planets_and_stars, whole = True):
 
     # If the sun is out...
     if planets_and_stars["Sun"]:
-        dappled_void.append(u"Merged with the Sun's light. Yet.")
+        dappled_void.append(choice(sun_options))
 
     for name in names:
         if planets_and_stars[name]:
