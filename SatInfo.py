@@ -1,11 +1,17 @@
 #!/usr/bin/env python
-import cPickle, os, time
+#
+# TODO
+#
+# * Implement tracking for classified TLEs from https://www.prismnet.com/~mmccants/tles/
+
+import cPickle, os, time, datetime
 
 import memcache
 
 import predict
 from spacetrack import SpaceTrackClient
 import ephem
+#from tzwhere import tzwhere
 
 from st_credentials import stUsername, stPassword, homeQTH
 
@@ -39,9 +45,10 @@ objectMapping = {
 
 
 class SatInfo(object):
-    def __init__(self, qth = homeQTH, satType = "visual-sats"):
+    def __init__(self, qth = homeQTH, satType = "visual-sats", offset = 0):
         self.satType = satType
         self.qth = qth
+        self.offset = offset
 
         self.mc = memcache.Client(['127.0.0.1:11211'], debug = 0)
 
@@ -65,7 +72,16 @@ class SatInfo(object):
         for id in ids:
             data = self.mc.get("%s-data" % id)
             tle = "%s\n%s\n%s" % (data["satcat"]["SATNAME"], data["tle"][0], data["tle"][1])
-            p = predict.observe(tle, self.qth)
+
+            # Get timezone offset based off of location
+            # SUPER SLOW
+            # Not using
+            #tz = tzwhere.tzwhere()
+            #timezone_str = tz.tzNameAt(self.qth[0], self.qth[1])
+            #print timezone_str
+            utc_datetime = datetime.datetime.utcnow()
+            local_datetime = utc_datetime - datetime.timedelta(minutes=self.offset)
+            p = predict.observe(tle, self.qth, time.mktime(local_datetime.timetuple()))
         
             # This just gets me things above the horizon, not things actually visible
             if p["elevation"] > 0:

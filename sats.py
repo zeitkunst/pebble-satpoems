@@ -23,6 +23,7 @@ import cPickle
 
 from datetime import datetime
 from random import choice, shuffle
+import os, time
 
 import predict
 from spacetrack import SpaceTrackClient
@@ -30,7 +31,7 @@ import ephem
 
 from flask import Flask, request
 from flask_restful import Resource, Api
-from json import dumps
+import json
 
 import SatInfo
 
@@ -241,6 +242,54 @@ class SatellitesAbovePoem(Resource):
 
         return generateDustPoem(highestSat)
 
+# TODO
+# Refactor so that we don't have so much overlap between these methods
+class SatellitesAbovePoemOffset(Resource):
+    def get(self, qth, offset):
+        # Old Method
+        #sats = getSatellitesAbove(parseQTH(qth))
+        #results = parseSatellitesAboveResults(sats)
+        offset = int(offset)
+        print "OFFSET: %s" % offset
+
+        satInfo = SatInfo.SatInfo(qth = parseQTH(qth), satType = "visual-sats", offset = offset)
+
+        results = satInfo.getSatellitesAboveParsed()
+
+
+        # Sort based off of elevation
+        sortedIDs = sorted(results, key = lambda x: results[x]["elevation"], reverse=True)
+        highestSat = results[sortedIDs[0]]
+
+        dustPoem = generateDustPoem(highestSat)
+
+        print highestSat
+
+        # Get country name
+        countryName = getCountryName(highestSat)
+
+        poem = "In %s, %s left a %s orbiting the earth." % (highestSat["launch_year"], countryName, highestSat["object_type"].lower())
+        poem = "%s It's above you right now." % poem
+        dayNight = dayOrNight(parseQTH(qth, pypredict = False))        
+
+        if dayNight == "day":
+            poem = "%s Even though it's %s, and you can't see it." % (poem, dayNight)
+        else:
+            #poem = "%s Look above, carefully, for the glint of its shell. I'm going to make this super duper long so that I can test scrolling on the emulator and the device yes I will becuase scrolling has to happen automatically yes it does otherwise the text will just sit there in the screen and there won't be much that we can do about it and it'll just be cut off and there's nothing we could do no no no but this we can yes yes yes." % poem
+            poem = "%s Look above, carefully, for the glint of its shell. I'm going to make this super duper long so that I can test scrolling on the emulator and the device yes I will becuase scrolling has to happen automatically" % poem
+            #poem = "%s Look above, carefully, for the glint of its shell." % poem
+
+        poem = generateDustPoem(highestSat)
+        poemSave = poem
+        poemSave["qth"] = qth
+        poemSave["offset"] = offset
+        poemSave["time"] = time.time()
+        filename = "poem_%d.json" % int(round(poemSave["time"]))
+        with open(os.path.join("poems", filename), 'w') as f:
+            f.write(json.dumps(poemSave))
+        return poem
+
+
 class PlanetsStarsAbove(Resource):
     def get(self, qth):
         return planetsStarsAbove(parseQTH(qth, pypredict = False))
@@ -352,6 +401,7 @@ def getSatellitesAbove(qth):
 
 api.add_resource(SatellitesAbove, "/sats/pebble/<string:qth>")
 api.add_resource(SatellitesAbovePoem, "/sats/pebble/poem/<string:qth>")
+api.add_resource(SatellitesAbovePoemOffset, "/sats/pebble/poem/<string:qth>/<string:offset>")
 api.add_resource(PlanetsStarsAbove, "/planets_stars/pebble/<string:qth>")
 api.add_resource(PlanetsStarsAbovePoems, "/planets_stars/pebble/poem/<string:qth>")
 
