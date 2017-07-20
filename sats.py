@@ -64,7 +64,31 @@ countryMapping = {
 
 solar_system_bodies = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"]
 
-stars = ["Vega", "Deneb", "Sirius", "Aldebaran", "Rigel", "Betelgeuse", "Capella", "Pollux", "Procyon", "Spica", "Arcturus", "Antares", "Regulus", "Altair"]
+stars = ["Vega", "Deneb", "Sirius", "Aldebaran", "Rigel", "Betelgeuse", "Capella", "Castor", "Pollux", "Procyon", "Spica", "Arcturus", "Antares", "Regulus", "Altair", "Polaris", "Mizar"]
+
+#stars_expanded = ["Vega", "Deneb", "Sirius", "Aldebaran", "Rigel", "Betelgeuse", "Capella", "Castor", "Pollux", "Procyon", "Spica", "Arcturus", "Antares", "Regulus", "Altair", "Polaris", "Mizar", "TRAPPIST-1", "KEPPLER-22"]
+
+stars_expanded_distances = {
+    "Vega": 25.04,
+    "Deneb": 2615,
+    "Sirius": 8.60,
+    "Aldebaran": 65.3,
+    "Rigel": 860,
+    "Betelgeuse": 643,
+    "Capella": 42.919,
+    "Pollux": 33.78,
+    "Castor": 51,
+    "Procyon": 11.46,
+    "Spica": 250,
+    "Arcturus": 36.7,
+    "Antares": 550,
+    "Regulus": 79.3,
+    "Altair": 16.73,
+    "Polaris": 323,
+    "Mizar": 86,
+    "TRAPPIST-1": 39.5,
+    "KEPPLER-22": 620
+}
 
 """
 Polaris the universe spins around
