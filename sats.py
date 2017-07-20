@@ -246,7 +246,7 @@ class SatellitesAbovePoem(Resource):
         sortedIDs = sorted(results, key = lambda x: results[x]["elevation"], reverse=True)
         highestSat = results[sortedIDs[0]]
 
-        dustPoem = generateDustPoem(highestSat)
+        satPoem = generateSatPoem(highestSat)
 
         print highestSat
 
@@ -264,7 +264,7 @@ class SatellitesAbovePoem(Resource):
             poem = "%s Look above, carefully, for the glint of its shell. I'm going to make this super duper long so that I can test scrolling on the emulator and the device yes I will becuase scrolling has to happen automatically" % poem
             #poem = "%s Look above, carefully, for the glint of its shell." % poem
 
-        return generateDustPoem(highestSat)
+        return generateSatPoem(highestSat)
 
 # TODO
 # Refactor so that we don't have so much overlap between these methods
@@ -285,7 +285,7 @@ class SatellitesAbovePoemOffset(Resource):
         sortedIDs = sorted(results, key = lambda x: results[x]["elevation"], reverse=True)
         highestSat = results[sortedIDs[0]]
 
-        dustPoem = generateDustPoem(highestSat)
+        satPoem = generateSatPoem(highestSat)
 
         print highestSat
 
@@ -303,7 +303,7 @@ class SatellitesAbovePoemOffset(Resource):
             poem = "%s Look above, carefully, for the glint of its shell. I'm going to make this super duper long so that I can test scrolling on the emulator and the device yes I will becuase scrolling has to happen automatically" % poem
             #poem = "%s Look above, carefully, for the glint of its shell." % poem
 
-        poem = generateDustPoem(highestSat)
+        poem = generateSatPoem(highestSat)
         poemSave = poem
         poemSave["qth"] = qth
         poemSave["offset"] = offset
@@ -361,14 +361,14 @@ def generateDappledVoidPoem(planets_and_stars, whole = True):
             encodedDappledVoidPoem.append(line.encode("utf-8"))
         return {"dappled_void_title": u"Dappled Void (after Anne Carson)".encode("utf-8"), "dappled_void_poem": encodedDappledVoidPoem}
 
-def generateDustPoem(satInfo, whole = True):
+def generateSatPoem(satInfo, whole = True):
     """
 (The earth | She) drags the (object type) back to the (surface | ground | crust)
 (Remember | Forget | Recall | Understand) its name, "(sat name)"
 (Hurled | Thrown | Launched) to the heavens upon fire (a while a go | a long time ago | recently)
 It will be reduced to dust.
 """
-    subjects = [u"The earth", u"The Field", u"She", u"Friction", u"The \u00E6ther"]
+    subjects = [u"The earth", u"The Field", u"He", u"She", u"Friction", u"The \u00E6ther"]
     actions = [u"drags", u"attracts", u"slows", u"decays"]
     surfaces = [u"surface", u"ground", u"crust", u"atmosphere", u"cloudtops"]
     remembers = [u"Remember", u"Forget", u"Recall", u"Understand", u"Know", u"Wonder about", u"Question"]
@@ -376,32 +376,32 @@ It will be reduced to dust.
     endings = [u"It will be reduced to dust.", u"It will remain aloft, forever.", u"It will be jostled by the solar wind.", u"It tumbles and tumbles, incessantly.", u"It will remain, still, in the cold void."]
     time = timeAgo(satInfo["launch_year"])
 
-    dustPoemLines = []
+    satPoemLines = []
 
-    dustPoemLines.append(u"EL %d DEGREES" % (int(round(float(satInfo["elevation"])))))
-    dustPoemLines.append(u"%s %s the %s above the %s" % (choice(subjects), choice(actions), satInfo["object_type"].lower(), choice(surfaces)))
-    dustPoemLines.append(u"%s its name, \u201C%s\u201D" % (choice(remembers), satInfo["satname"]))
-    dustPoemLines.append(u"%s to the heavens upon fire %s" % (choice(hurleds), time))
-    dustPoemLines.append(choice(endings))
+    satPoemLines.append(u"EL %d DEGREES" % (int(round(float(satInfo["elevation"])))))
+    satPoemLines.append(u"%s %s the %s above the %s" % (choice(subjects), choice(actions), satInfo["object_type"].lower(), choice(surfaces)))
+    satPoemLines.append(u"%s its name, \u201C%s\u201D" % (choice(remembers), satInfo["satname"]))
+    satPoemLines.append(u"%s to the heavens upon fire %s" % (choice(hurleds), time))
+    satPoemLines.append(choice(endings))
 
     """
-    dustPoem = "EL %d DEGREES\n\n" % (int(round(float(satInfo["elevation"]))))
-    dustPoem = "%s%s drags the %s back to the %s\n\n" % (dustPoem, choice(subjects), satInfo["object_type"].lower(), choice(surfaces))
-    dustPoem = "%s%s its name, \"%s\"\n\n" % (dustPoem, choice(remembers), satInfo["satname"])
-    dustPoem = "%s%s to the heavens upon fire %s\n\n" % (dustPoem, choice(hurleds), time)
-    dustPoem = "%sIt will be reduced to dust." % (dustPoem)
+    satPoem = "EL %d DEGREES\n\n" % (int(round(float(satInfo["elevation"]))))
+    satPoem = "%s%s drags the %s back to the %s\n\n" % (satPoem, choice(subjects), satInfo["object_type"].lower(), choice(surfaces))
+    satPoem = "%s%s its name, \"%s\"\n\n" % (satPoem, choice(remembers), satInfo["satname"])
+    satPoem = "%s%s to the heavens upon fire %s\n\n" % (satPoem, choice(hurleds), time)
+    satPoem = "%sIt will be reduced to dust." % (satPoem)
     """
 
     if whole:
-        dustPoem = unicode("\n\n".join(dustPoemLines[1:]))
-        print dustPoem.encode("utf-8") 
-        #dustPoem = dustPoemLines[0]
-        return {"title": dustPoemLines[0].encode("utf-8"), "poem": dustPoem.encode("utf-8")}
+        satPoem = unicode("\n\n".join(satPoemLines[1:]))
+        print satPoem.encode("utf-8") 
+        #satPoem = satPoemLines[0]
+        return {"title": satPoemLines[0].encode("utf-8"), "poem": satPoem.encode("utf-8")}
     else:
-        encodedDustPoem = []
-        for line in dustPoemLines[1:]:
-            encodedDustPoem.append(line.encode("utf-8"))
-        return {"title": dustPoemLines[0].encode("utf-8"), "poem": encodedDustPoem}
+        encodedSatPoem = []
+        for line in satPoemLines[1:]:
+            encodedSatPoem.append(line.encode("utf-8"))
+        return {"title": satPoemLines[0].encode("utf-8"), "poem": encodedSatPoem}
 
 def getSatellitesAbove(qth):
     sats = {}
