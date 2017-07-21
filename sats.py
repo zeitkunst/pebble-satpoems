@@ -370,6 +370,13 @@ def generateEveryMomentPoem(planets_and_stars, whole = True):
         u"IS OUR PAST",
         u"IS BEYOND OUR MEMORY"
     ]
+    old_wait_options = [
+        u"you can't wait",
+        u"you won't wait",
+        u"you must wait",
+        u"you will wait",
+        u"you will wait beyond your life"
+    ]
 
 
     # If the sun is out...
@@ -408,9 +415,14 @@ def generateEveryMomentPoem(planets_and_stars, whole = True):
         every_moment.append(choice(recent_options))
 
     #every_moment.append(u"IS YOUR PAST")
-    every_moment.append(u"what do you remember")
-    every_moment.append(u"what do you remember")
-    every_moment.append(u"what do you remember of the past %d years" % nearest_year)
+
+    if (nearest_year > YEAR_THRESHOLD):
+        every_moment.append(u"what remains of this past")
+        every_moment.append(u"what remains of this past")
+    else:
+        every_moment.append(u"what do you remember")
+        every_moment.append(u"what do you remember")
+        every_moment.append(u"what do you remember of the past %d years" % nearest_year)
 
     send = choice(send_options)
     if send.find("%") != -1:
@@ -418,13 +430,24 @@ def generateEveryMomentPoem(planets_and_stars, whole = True):
     else:
         every_moment.append(send)
 
-    every_moment.append(u"wait wait wait")
-    every_moment.append(u"wait for %d years" % (nearest_year * 2))
-    every_moment.append(u"(don't wait) (don't wait) (don't wait)")
-    every_moment.append(u"(don't wait for %d years)" % (nearest_year * 2))
+    if (nearest_year > YEAR_THRESHOLD):
+        every_moment.append(choice(old_wait_options))
+        every_moment.append(choice(old_wait_options))
+    else:
+        every_moment.append(u"wait wait wait")
+        every_moment.append(u"wait for %d years" % (nearest_year * 2))
+        every_moment.append(u"(don't wait) (don't wait) (don't wait)")
+        every_moment.append(u"(don't wait for %d years)" % (nearest_year * 2))
 
-    every_moment.append(u"YOUR FUTURE WILL BE")
-    every_moment.append(u"THE PRESENT OF %s" % name.upper())
+    if (nearest_year > YEAR_THRESHOLD):
+        every_moment.append(u"WHAT OF NOW")
+        every_moment.append(u"WILL BE HERE THEN")
+        every_moment.append(u"IN THIS PLACE")
+        every_moment.append(u"IN THE PRESENT OF %s" % name.upper())
+        pass
+    else:
+        every_moment.append(u"YOUR FUTURE WILL BE")
+        every_moment.append(u"THE PRESENT OF %s" % name.upper())
 
 
     #every_moment.append("This is the name: %s" % name)
