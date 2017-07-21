@@ -363,7 +363,7 @@ def generateEveryMomentPoem(planets_and_stars, whole = True):
         u"AVOID CALLING %s"
     ]
     recent_options = [
-        u"IS YOUR PAST"
+        u"IS YOUR PAST",
         u"CAN BE REMEMBERED"
     ]
     old_options = [
@@ -431,6 +431,7 @@ def generateEveryMomentPoem(planets_and_stars, whole = True):
         every_moment.append(send)
 
     if (nearest_year > YEAR_THRESHOLD):
+        every_moment.append(choice(old_wait_options))
         every_moment.append(choice(old_wait_options))
         every_moment.append(choice(old_wait_options))
     else:
