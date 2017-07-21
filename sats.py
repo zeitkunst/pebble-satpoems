@@ -441,6 +441,8 @@ def generateEveryMomentPoem(planets_and_stars, whole = True):
         every_moment.append(u"(don't wait) (don't wait) (don't wait)")
         every_moment.append(u"(don't wait for %d years)" % (nearest_year * 2))
 
+    every_moment.append(u"for a response")
+
     if (nearest_year > YEAR_THRESHOLD):
         every_moment.append(u"WHAT OF NOW")
         every_moment.append(u"WILL BE HERE THEN")
@@ -460,12 +462,12 @@ def generateEveryMomentPoem(planets_and_stars, whole = True):
 
     if whole:
         everyMomentPoem = unicode("|".join(every_moment))
-        return {"every_moment_title": u"Every past is present".encode("utf-8"), "every_moment_poem": everyMomentPoem.encode("utf-8")}
+        return {"every_moment_title": u"Every moment again".encode("utf-8"), "every_moment_poem": everyMomentPoem.encode("utf-8")}
     else:
         encodedEveryMomentPoem = []
         for line in every_moment:
             encodedEveryMomentPoem.append(line.encode("utf-8"))
-        return {"every_moment_title": u"Every past is present".encode("utf-8"), "every_moment_poem": encodedEveryMomentPoem}
+        return {"every_moment_title": u"Every moment again".encode("utf-8"), "every_moment_poem": encodedEveryMomentPoem}
 
 
 def generateDappledVoidPoem(planets_and_stars, whole = True):
