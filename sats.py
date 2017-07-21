@@ -338,6 +338,7 @@ class PlanetsStarsEveryMomentPoems(Resource):
 def generateEveryMomentPoem(planets_and_stars, whole = True):
 
     every_moment = []
+    YEAR_THRESHOLD = 65
     opening_options = [
         u"TIME NOW IS TIME PAST",
         u"A STAR TOUCHES YOU",
@@ -360,6 +361,14 @@ def generateEveryMomentPoem(planets_and_stars, whole = True):
         u"LAUNCH A CRAFT TODAY",
         u"THINK TOWARDS %s",
         u"AVOID CALLING %s"
+    ]
+    recent_options = [
+        u"IS YOUR PAST"
+        u"CAN BE REMEMBERED"
+    ]
+    old_options = [
+        u"IS OUR PAST",
+        u"IS BEYOND OUR MEMORY"
     ]
 
 
@@ -393,7 +402,12 @@ def generateEveryMomentPoem(planets_and_stars, whole = True):
     every_moment.append(u"YOU SEE NOW")
     every_moment.append(u"WHAT IS ABOUT %d YEARS OLD" % nearest_year)
     every_moment.append(u"THE TIME OF THIS LIGHT")
-    every_moment.append(u"IS YOUR PAST")
+    if (nearest_year > YEAR_THRESHOLD):
+        every_moment.append(choice(old_options))
+    else:
+        every_moment.append(choice(recent_options))
+
+    #every_moment.append(u"IS YOUR PAST")
     every_moment.append(u"what do you remember")
     every_moment.append(u"what do you remember")
     every_moment.append(u"what do you remember of the past %d years" % nearest_year)
@@ -405,9 +419,9 @@ def generateEveryMomentPoem(planets_and_stars, whole = True):
         every_moment.append(send)
 
     every_moment.append(u"wait wait wait")
-    every_moment.append(u"wait for %d years" % nearest_year)
+    every_moment.append(u"wait for %d years" % (nearest_year * 2))
     every_moment.append(u"(don't wait) (don't wait) (don't wait)")
-    every_moment.append(u"(don't wait for %d years)" % nearest_year)
+    every_moment.append(u"(don't wait for %d years)" % (nearest_year * 2))
 
     every_moment.append(u"YOUR FUTURE WILL BE")
     every_moment.append(u"THE PRESENT OF %s" % name.upper())
