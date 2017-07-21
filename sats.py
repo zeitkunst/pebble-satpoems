@@ -27,7 +27,8 @@ import os, time
 
 import predict
 from spacetrack import SpaceTrackClient
-import ephem
+import ephem, ephem.stars
+
 
 from flask import Flask, request
 from flask_restful import Resource, Api
@@ -64,7 +65,8 @@ countryMapping = {
 
 solar_system_bodies = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"]
 
-stars = ["Vega", "Deneb", "Sirius", "Aldebaran", "Rigel", "Betelgeuse", "Capella", "Castor", "Pollux", "Procyon", "Spica", "Arcturus", "Antares", "Regulus", "Altair", "Polaris", "Mizar"]
+#stars = ["Vega", "Deneb", "Sirius", "Aldebaran", "Rigel", "Betelgeuse", "Capella", "Castor", "Pollux", "Procyon", "Spica", "Arcturus", "Antares", "Regulus", "Altair", "Polaris", "Mizar"]
+stars = ["Vega", "Deneb", "Sirius", "Aldebaran", "Rigel", "Betelgeuse", "Capella", "Castor", "Pollux", "Procyon", "Spica", "Arcturus", "Antares", "Regulus", "Altair", "Albereo"]
 
 #stars_expanded = ["Vega", "Deneb", "Sirius", "Aldebaran", "Rigel", "Betelgeuse", "Capella", "Castor", "Pollux", "Procyon", "Spica", "Arcturus", "Antares", "Regulus", "Altair", "Polaris", "Mizar", "TRAPPIST-1", "KEPPLER-22"]
 
@@ -86,6 +88,7 @@ stars_expanded_distances = {
     "Altair": 16.73,
     "Polaris": 323,
     "Mizar": 86,
+    "Albereo": 430,
     "TRAPPIST-1": 39.5,
     "KEPPLER-22": 620
 }
@@ -323,6 +326,108 @@ class PlanetsStarsAbovePoems(Resource):
         planets_and_stars = planetsStarsAbove(parseQTH(qth, pypredict = False))
         return generateDappledVoidPoem(planets_and_stars)
 
+class PlanetsStarsEveryMoment(Resource):
+    def get(self, qth):
+        return planetsStarsAbove(parseQTH(qth, pypredict = False))
+
+class PlanetsStarsEveryMomentPoems(Resource):
+    def get(self, qth):
+        planets_and_stars = planetsStarsAbove(parseQTH(qth, pypredict = False))
+        return generateEveryMomentPoem(planets_and_stars)
+
+def generateEveryMomentPoem(planets_and_stars, whole = True):
+
+    every_moment = []
+    opening_options = [
+        u"TIME NOW IS TIME PAST",
+        u"A STAR TOUCHES YOU",
+        u"THE SPECTRUM REACHES YOU",
+        u"WHAT ARE YOU NOW",
+        u"WHEN ENDS YOUR PAST"
+    ]
+    no_light_options = [
+        u"IN THE GLARE IS %s",
+        u"HIDDEN IS %s",
+        u"%s IS THERE"
+    ]
+    light_options = [
+        u"%s IS THERE",
+        u"YOU MIGHT SEE %s",
+        u"LOOK TOWARDS %s"
+    ]
+    send_options = [
+        u"SEND A SIGNAL NOW",
+        u"LAUNCH A CRAFT TODAY",
+        u"THINK TOWARDS %s",
+        u"AVOID CALLING %s"
+    ]
+
+
+    # If the sun is out...
+    if planets_and_stars["Sun"]:
+        sun_out = True
+    else:
+        sun_out = False
+
+    # For now, remove solar system bodies
+    # TODO
+    # Change this eventually
+    names = planets_and_stars.keys()
+    for body in solar_system_bodies:
+        names.remove(body)
+    shuffle(names)
+    name = choice(names)
+    ly = stars_expanded_distances[name]
+
+    every_moment.append(choice(opening_options))
+   
+    if sun_out:
+        every_moment.append(choice(light_options) % name.upper())
+    else:
+        every_moment.append(choice(no_light_options) % name.upper())
+
+    nearest_year = int(ly - (ly%10))
+    if (nearest_year < 10):
+        nearest_year = int(ly)
+
+    every_moment.append(u"YOU SEE NOW")
+    every_moment.append(u"WHAT IS ABOUT %d YEARS OLD" % nearest_year)
+    every_moment.append(u"THE TIME OF THIS LIGHT")
+    every_moment.append(u"IS YOUR PAST")
+    every_moment.append(u"what do you remember")
+    every_moment.append(u"what do you remember")
+    every_moment.append(u"what do you remember of the past %d years" % nearest_year)
+
+    send = choice(send_options)
+    if send.find("%") != -1:
+        every_moment.append(send % name.upper())
+    else:
+        every_moment.append(send)
+
+    every_moment.append(u"wait wait wait")
+    every_moment.append(u"wait for %d years" % nearest_year)
+    every_moment.append(u"(don't wait) (don't wait) (don't wait)")
+    every_moment.append(u"(don't wait for %d years)" % nearest_year)
+
+    every_moment.append(u"YOUR FUTURE WILL BE")
+    every_moment.append(u"THE PRESENT OF %s" % name.upper())
+
+
+    #every_moment.append("This is the name: %s" % name)
+    #every_moment.append("This is how far away it is: %f" % ly)
+
+    #every_moment[-1] = every_moment[-1].rstrip(",")
+    #every_moment[-1] = u"%s." % every_moment[-1]
+
+    if whole:
+        everyMomentPoem = unicode("|".join(every_moment))
+        return {"every_moment_title": u"Every past is present".encode("utf-8"), "every_moment_poem": everyMomentPoem.encode("utf-8")}
+    else:
+        encodedEveryMomentPoem = []
+        for line in every_moment:
+            encodedEveryMomentPoem.append(line.encode("utf-8"))
+        return {"every_moment_title": u"Every past is present".encode("utf-8"), "every_moment_poem": encodedEveryMomentPoem}
+
 
 def generateDappledVoidPoem(planets_and_stars, whole = True):
 
@@ -428,6 +533,9 @@ api.add_resource(SatellitesAbovePoem, "/sats/pebble/poem/<string:qth>")
 api.add_resource(SatellitesAbovePoemOffset, "/sats/pebble/poem/<string:qth>/<string:offset>")
 api.add_resource(PlanetsStarsAbove, "/planets_stars/pebble/<string:qth>")
 api.add_resource(PlanetsStarsAbovePoems, "/planets_stars/pebble/poem/<string:qth>")
+api.add_resource(PlanetsStarsEveryMoment, "/planets_stars_every_moment/pebble/<string:qth>")
+api.add_resource(PlanetsStarsEveryMomentPoems, "/planets_stars_every_moment/pebble/poem/<string:qth>")
+
 
 if __name__ == "__main__":
     #application.run(host="0.0.0.0")
