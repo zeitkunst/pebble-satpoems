@@ -393,6 +393,7 @@ def generateEveryMomentPoem(planets_and_stars, whole = True):
         names.remove(body)
     shuffle(names)
     name = choice(names)
+    if (name == "Betelgeuse"): name = "Betel-geuse"
     ly = stars_expanded_distances[name]
 
     every_moment.append(choice(opening_options))
@@ -406,7 +407,7 @@ def generateEveryMomentPoem(planets_and_stars, whole = True):
     if (nearest_year < 10):
         nearest_year = int(ly)
 
-    every_moment.append(u"YOU SEE NOW")
+    every_moment.append(u"WHAT IS THERE")
     every_moment.append(u"WHAT IS ABOUT %d YEARS OLD" % nearest_year)
     every_moment.append(u"THE TIME OF THIS LIGHT")
     if (nearest_year > YEAR_THRESHOLD):
