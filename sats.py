@@ -364,7 +364,7 @@ def generateEveryMomentPoem(planets_and_stars, whole = True):
     ]
     recent_options = [
         u"IS YOUR PAST",
-        u"CAN BE REMEMBERED"
+        u"CAN BE RECALLED"
     ]
     old_options = [
         u"IS OUR PAST",
@@ -393,8 +393,8 @@ def generateEveryMomentPoem(planets_and_stars, whole = True):
         names.remove(body)
     shuffle(names)
     name = choice(names)
-    if (name == "Betelgeuse"): name = "Betel-geuse"
     ly = stars_expanded_distances[name]
+    if (name == "Betelgeuse"): name = "Betel-geuse"
 
     every_moment.append(choice(opening_options))
    
