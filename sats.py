@@ -332,6 +332,7 @@ class PlanetsStarsEveryMoment(Resource):
 
 class PlanetsStarsEveryMomentPoems(Resource):
     def get(self, qth):
+
         planets_and_stars = planetsStarsAbove(parseQTH(qth, pypredict = False))
         return generateEveryMomentPoem(planets_and_stars)
 
@@ -385,6 +386,8 @@ def generateEveryMomentPoem(planets_and_stars, whole = True):
     else:
         sun_out = False
 
+    print("Sun is out: %s" % sun_out)
+
     # For now, remove solar system bodies
     # TODO
     # Change this eventually
@@ -399,9 +402,9 @@ def generateEveryMomentPoem(planets_and_stars, whole = True):
     every_moment.append(choice(opening_options))
    
     if sun_out:
-        every_moment.append(choice(light_options) % name.upper())
-    else:
         every_moment.append(choice(no_light_options) % name.upper())
+    else:
+        every_moment.append(choice(light_options) % name.upper())
 
     nearest_year = int(ly - (ly%10))
     if (nearest_year < 10):
