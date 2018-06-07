@@ -248,8 +248,9 @@ class SatellitesAbovePoem(Resource):
         # Sort based off of elevation
         sortedIDs = sorted(results, key = lambda x: results[x]["elevation"], reverse=True)
         highestSat = results[sortedIDs[0]]
+        
 
-        satPoem = generateSatPoem(highestSat)
+        satPoem = generateSatPoem(highestSat, qth = parseQTH(qth))
 
         print highestSat
 
@@ -288,7 +289,7 @@ class SatellitesAbovePoemOffset(Resource):
         sortedIDs = sorted(results, key = lambda x: results[x]["elevation"], reverse=True)
         highestSat = results[sortedIDs[0]]
 
-        satPoem = generateSatPoem(highestSat)
+        satPoem = generateSatPoem(highestSat, qth = qth)
 
         print highestSat
 
@@ -308,10 +309,10 @@ class SatellitesAbovePoemOffset(Resource):
 
         poem = generateSatPoem(highestSat)
         poemSave = poem
-        poemSave["qth"] = qth
+        poemSave["qth"] = parseQTH(qth, pypredict = False)
         poemSave["offset"] = offset
         poemSave["time"] = time.time()
-        filename = "poem_%d.json" % int(round(poemSave["time"]))
+        filename = "satellite_%d.json" % int(round(poemSave["time"]))
         with open(os.path.join("poems", filename), 'w') as f:
             f.write(json.dumps(poemSave))
         return poem
@@ -334,9 +335,9 @@ class PlanetsStarsEveryMomentPoems(Resource):
     def get(self, qth):
 
         planets_and_stars = planetsStarsAbove(parseQTH(qth, pypredict = False))
-        return generateEveryMomentPoem(planets_and_stars)
+        return generateEveryMomentPoem(qth, planets_and_stars)
 
-def generateEveryMomentPoem(planets_and_stars, whole = True):
+def generateEveryMomentPoem(qth, planets_and_stars, whole = True):
 
     every_moment = []
     YEAR_THRESHOLD = 65
@@ -465,7 +466,15 @@ def generateEveryMomentPoem(planets_and_stars, whole = True):
 
     if whole:
         everyMomentPoem = unicode("|".join(every_moment))
-        return {"every_moment_title": u"Every moment again".encode("utf-8"), "every_moment_poem": everyMomentPoem.encode("utf-8")}
+        poem = {"every_moment_title": u"Every moment again".encode("utf-8"), "every_moment_poem": everyMomentPoem.encode("utf-8")}
+        poemSave = poem
+        poemSave["qth"] = qth
+        poemSave["time"] = time.time()
+        filename = "every_moment_%d.json" % int(round(poemSave["time"]))
+        with open(os.path.join("poems", filename), 'w') as f:
+            f.write(json.dumps(poemSave))
+
+        return poem
     else:
         encodedEveryMomentPoem = []
         for line in every_moment:
@@ -510,7 +519,7 @@ def generateDappledVoidPoem(planets_and_stars, whole = True):
             encodedDappledVoidPoem.append(line.encode("utf-8"))
         return {"dappled_void_title": u"Dappled Void (after Anne Carson)".encode("utf-8"), "dappled_void_poem": encodedDappledVoidPoem}
 
-def generateSatPoem(satInfo, whole = True):
+def generateSatPoem(satInfo, qth = [], whole = True):
     """
 (The earth | She) drags the (object type) back to the (surface | ground | crust)
 (Remember | Forget | Recall | Understand) its name, "(sat name)"
@@ -523,14 +532,14 @@ It will be reduced to dust.
     remembers = [u"Remember", u"Forget", u"Recall", u"Understand", u"Know", u"Wonder about", u"Question"]
     hurleds = [u"Hurled", u"Thrown", u"Launched", u"Propelled", u"Thrust"]
     endings = [u"It will be reduced to dust.", u"It will remain aloft, forever.", u"It will be jostled by the solar wind.", u"It tumbles and tumbles, incessantly.", u"It will remain, still, in the cold void."]
-    time = timeAgo(satInfo["launch_year"])
+    time_launched = timeAgo(satInfo["launch_year"])
 
     satPoemLines = []
 
     satPoemLines.append(u"EL %d DEGREES" % (int(round(float(satInfo["elevation"])))))
     satPoemLines.append(u"%s %s the %s above the %s" % (choice(subjects), choice(actions), satInfo["object_type"].lower(), choice(surfaces)))
     satPoemLines.append(u"%s its name, \u201C%s\u201D" % (choice(remembers), satInfo["satname"]))
-    satPoemLines.append(u"%s to the heavens upon fire %s" % (choice(hurleds), time))
+    satPoemLines.append(u"%s to the heavens upon fire %s" % (choice(hurleds), time_launched))
     satPoemLines.append(choice(endings))
 
     """
@@ -544,8 +553,10 @@ It will be reduced to dust.
     if whole:
         satPoem = unicode("\n\n".join(satPoemLines[1:]))
         print satPoem.encode("utf-8") 
-        #satPoem = satPoemLines[0]
-        return {"title": satPoemLines[0].encode("utf-8"), "poem": satPoem.encode("utf-8")}
+
+        poemReturn = {"title": satPoemLines[0].encode("utf-8"), "poem": satPoem.encode("utf-8")}
+
+        return poemReturn
     else:
         encodedSatPoem = []
         for line in satPoemLines[1:]:

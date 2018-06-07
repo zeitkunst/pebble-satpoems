@@ -61,6 +61,7 @@ class SatInfo(object):
             # Then we probably need to update things
             update = SatInfoUpdate(sat_types[self.satType]["filename"])
             update.updateSatInfo()
+            return update.getIDs()
         else:
             return ids
 
