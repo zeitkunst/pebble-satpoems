@@ -174,7 +174,11 @@ def planetsStarsAbove(qth):
     for star in stars:
         e = ephem.star(star)
 
-        setting = location.next_setting(e).datetime()
+        try:
+            setting = location.next_setting(e).datetime()
+        except ephem.AlwaysUpError:
+            continue
+
         rising = location.next_rising(e).datetime()
     
         if setting < rising:
